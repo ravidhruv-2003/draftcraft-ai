@@ -56,7 +56,8 @@ Formatting Rules:
 3. Keep paragraphs well-spaced, scannable, and actionable.
 4. If action is required, end with a crisp Call-To-Action (CTA).
 5. Add an appropriate professional sign-off and placeholder signature (e.g. [Your Name], [Your Title]).
-6. Never output conversational preamble like "Here is your email:". Output ONLY the draft content.`;
+6. Never output conversational preamble like "Here is your email:". Output ONLY the draft content.
+7. Never ask questions back or ask for suggestions. Always produce the complete draft immediately using clean bracketed placeholders for any missing details.`;
 }
 
 export async function runAIGeneration(params: GenerateParams): Promise<GenerateResult> {
@@ -97,9 +98,9 @@ export async function runAIGeneration(params: GenerateParams): Promise<GenerateR
 
       // Extract subject line if present
       let subjectLine = '';
-      const subjectMatch = text.match(/^Subject:\s*(.*)$/im);
+      const subjectMatch = text.match(/^(?:\*\*|#+\s*)?Subject(?:\s*Line)?:\s*\*{0,2}(.*?)\*{0,2}$/im);
       if (subjectMatch) {
-        subjectLine = subjectMatch[1].trim();
+        subjectLine = subjectMatch[1].replace(/^\*+|\*+$/g, '').trim();
       }
 
       return {
@@ -141,9 +142,9 @@ export async function runAIGeneration(params: GenerateParams): Promise<GenerateR
       const text = result.response.text();
 
       let subjectLine = '';
-      const subjectMatch = text.match(/^Subject:\s*(.*)$/im);
+      const subjectMatch = text.match(/^(?:\*\*|#+\s*)?Subject(?:\s*Line)?:\s*\*{0,2}(.*?)\*{0,2}$/im);
       if (subjectMatch) {
-        subjectLine = subjectMatch[1].trim();
+        subjectLine = subjectMatch[1].replace(/^\*+|\*+$/g, '').trim();
       }
 
       const inputTokens = estimateTokens(systemPrompt + userContent);

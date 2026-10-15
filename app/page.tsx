@@ -197,10 +197,10 @@ export default function Home() {
   const handleApplyDraftFromCopilot = (content: string, subject?: string) => {
     let cleanContent = content;
     let cleanSubject = subject || '';
-    const match = content.match(/^Subject:\s*(.*)$/im);
+    const match = content.match(/^(?:\*\*|#+\s*)?Subject(?:\s*Line)?:\s*\*{0,2}(.*?)\*{0,2}$/im);
     if (match) {
-      cleanSubject = match[1].trim();
-      cleanContent = content.replace(/^Subject:\s*.*$/im, '').trim();
+      cleanSubject = match[1].replace(/^\*+|\*+$/g, '').trim();
+      cleanContent = content.replace(/^(?:\*\*|#+\s*)?Subject(?:\s*Line)?:\s*.*$/im, '').trim();
     }
     setGeneratedContent(cleanContent);
     if (cleanSubject) setSubjectLine(cleanSubject);
