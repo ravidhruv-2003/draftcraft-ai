@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
       currentSubject = '',
       targetPreset = 'formal',
       action = 'shorten',
+      customInstruction = '',
       model = 'claude-haiku-4-5-20251001',
       apiKey,
     } = body;
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
       currentContent,
       currentSubject,
       action,
+      customInstruction,
       targetPreset,
       model,
       apiKey: clientApiKey,

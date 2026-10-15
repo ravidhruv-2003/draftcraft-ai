@@ -12,6 +12,7 @@ import { fetchDrafts, saveDraftItem, removeDraft, getUsageAnalytics } from '@/li
 import { INITIAL_SUBSCRIPTION_CREDIT } from '@/lib/pricing';
 import { apiService } from '@/services/apiService';
 import { AICopilotDrawer } from '@/components/Chat/AICopilotDrawer';
+import { RefinementAction } from '@/components/Studio/QuickPolishBar';
 
 import { NetworkStatusBanner } from '@/components/UI/NetworkStatusBanner';
 
@@ -49,6 +50,19 @@ export default function Home() {
   const [totalTokensSaved, setTotalTokensSaved] = useState<number>(0);
   const [overallEfficiencyPercentage, setOverallEfficiencyPercentage] = useState<number>(28.5);
   const [isRefreshingStats, setIsRefreshingStats] = useState(false);
+
+  // Draft refinement version history for 1-click Undo
+  const [draftHistory, setDraftHistory] = useState<{ content: string; subject: string; action: string }[]>([]);
+  const [lastActionApplied, setLastActionApplied] = useState<string | null>(null);
+
+  const handleUndoRefine = () => {
+    if (draftHistory.length === 0) return;
+    const previous = draftHistory[draftHistory.length - 1];
+    setGeneratedContent(previous.content);
+    setSubjectLine(previous.subject);
+    setDraftHistory((prev) => prev.slice(0, -1));
+    setLastActionApplied(null);
+  };
 
   // Load initial data
   const loadData = useCallback(async () => {
@@ -115,11 +129,18 @@ export default function Home() {
   };
 
   // Quick Refine Action Handler
-  const handleQuickRefine = async (action: 'shorten' | 'executive' | 'friendly' | 'add-cta') => {
+  const handleQuickRefine = async (action: RefinementAction, customInstruction?: string) => {
     if (!generatedContent || !generatedContent.trim()) {
       setErrorMessage('Please generate or enter a draft in the editor first before using Quick AI Refinement.');
       return;
     }
+
+    const previousSnapshot = {
+      content: generatedContent,
+      subject: subjectLine,
+      action: action === 'custom' ? (customInstruction || 'Custom Edit') : action,
+    };
+
     setIsRefining(true);
     setErrorMessage(null);
     try {
@@ -128,6 +149,7 @@ export default function Home() {
         currentSubject: subjectLine,
         targetPreset: toneSettings.preset,
         action,
+        customInstruction,
         model: selectedModel || 'claude-haiku-4-5-20251001',
       });
 
@@ -143,6 +165,20 @@ export default function Home() {
           }
           cleanContent = data.content.replace(/^(?:\*\*|#+\s*)?Subject(?:\s*Line)?:\s*.*(?:\n+|$)/im, '').trim();
         }
+
+        // Save previous version to history stack for 1-click Undo
+        setDraftHistory((prev) => [...prev.slice(-4), previousSnapshot]);
+
+        const actionLabels: Record<string, string> = {
+          shorten: 'Shorten Fluff',
+          executive: 'Executive Polish',
+          friendly: 'Make Friendly',
+          'add-cta': 'Stronger CTA',
+          grammar: 'Grammar Polish',
+          bullets: 'Bullet Points',
+          custom: customInstruction ? `"${customInstruction.slice(0, 18)}..."` : 'Custom Refinement',
+        };
+        setLastActionApplied(actionLabels[action] || action);
 
         setGeneratedContent(cleanContent);
         if (cleanSubject) {
@@ -284,6 +320,9 @@ export default function Home() {
                 isRefining={isRefining}
                 latestUsageRecord={latestUsageRecord}
                 errorMessage={errorMessage}
+                canUndo={draftHistory.length > 0}
+                onUndo={handleUndoRefine}
+                lastActionApplied={lastActionApplied}
               />
             </div>
           </div>

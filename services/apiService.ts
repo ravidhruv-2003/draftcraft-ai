@@ -91,7 +91,8 @@ export const apiService = {
     currentContent: string;
     currentSubject?: string;
     targetPreset?: string;
-    action: 'shorten' | 'executive' | 'friendly' | 'add-cta' | 're-tone';
+    action: 'shorten' | 'executive' | 'friendly' | 'add-cta' | 'grammar' | 'bullets' | 'custom' | 're-tone';
+    customInstruction?: string;
     model?: string;
   }): Promise<AdjustToneResponse> {
     checkNetworkOnline();

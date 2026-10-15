@@ -6,7 +6,8 @@ import { resolveClaudeModel } from './pricing';
 export interface RefineParams {
   currentContent: string;
   currentSubject?: string;
-  action: 'shorten' | 'executive' | 'friendly' | 'add-cta' | 're-tone';
+  action: 'shorten' | 'executive' | 'friendly' | 'add-cta' | 'grammar' | 'bullets' | 'custom' | 're-tone';
+  customInstruction?: string;
   targetPreset?: string;
   model?: string;
   apiKey?: string;
@@ -28,6 +29,7 @@ export async function runAIRefine(params: RefineParams): Promise<RefineResult> {
     currentContent,
     currentSubject = '',
     action,
+    customInstruction = '',
     targetPreset = 'formal',
     model = 'claude-haiku-4-5-20251001',
     apiKey,
@@ -53,10 +55,15 @@ export async function runAIRefine(params: RefineParams): Promise<RefineResult> {
     executive: 'Elevate vocabulary, syntax, and tone to sound authoritative, C-suite caliber, highly polished, strategic, and decisive while keeping the core message and placeholders intact.',
     friendly: 'Soften the tone to sound warm, empathetic, collaborative, appreciative, and approachable while maintaining professional credibility and preserving all facts.',
     'add-cta': 'Strengthen the closing of the text with a decisive call-to-action (CTA) and clear next steps, ensuring the recipient knows exactly what to do next.',
+    grammar: 'Correct all grammar, spelling, punctuation, typos, and phrasing flaws to ensure flawless professional clarity while keeping the exact tone and intent intact.',
+    bullets: 'Convert the main body arguments, points, or updates into high-density, cleanly structured bullet points for maximum readability, keeping the greeting and sign-off intact.',
+    custom: customInstruction || 'Refine and improve the draft according to the user request.',
     're-tone': `Re-tone the following text to match a ${targetPreset} tone while preserving all facts.`,
   };
 
-  const currentInstruction = actionInstructions[action] || actionInstructions.shorten;
+  const currentInstruction = action === 'custom' && customInstruction
+    ? customInstruction
+    : (actionInstructions[action] || actionInstructions.shorten);
 
   const systemPrompt = `You are an expert AI Executive Editor and Communications Polisher.
 Your job is to directly refine and polish the user's existing draft according to the requested directive.
@@ -202,8 +209,22 @@ function simulateRefinement(content: string, action: string, subject?: string): 
     return `${warmGreeting || 'Hi team,'}\n\nI hope you are having a wonderful week! 😊\n\n${bodyLines}\n\nWarm regards,\n[Your Name]`;
   }
 
-  if (action === 'add-cta') {
-    return `${content}\n\n**Next Steps:**\nPlease confirm your availability by Thursday at 2:00 PM so we can align our timeline and finalize deliverables promptly.`;
+  if (action === 'grammar') {
+    return greeting ? `${greeting}\n\n${bodyLines}` : content;
+  }
+
+  if (action === 'bullets') {
+    const points = bodyLines
+      .split(/(?<=[.?!])\s+/)
+      .filter((s) => s.trim().length > 10)
+      .slice(0, 4)
+      .map((p) => `• ${p.trim()}`)
+      .join('\n');
+    return greeting ? `${greeting}\n\nKey Takeaways:\n${points}\n\nSincerely,\n[Your Name]` : `• ${bodyLines}`;
+  }
+
+  if (action === 'custom') {
+    return greeting ? `${greeting}\n\n${bodyLines}` : content;
   }
 
   return content;

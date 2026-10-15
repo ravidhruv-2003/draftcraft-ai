@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { UsageRecord } from '@/types/draft';
 import { SubjectBar } from './SubjectBar';
-import { QuickPolishBar } from './QuickPolishBar';
+import { QuickPolishBar, RefinementAction } from './QuickPolishBar';
 import { DraftCanvas } from './DraftCanvas';
 
 interface DraftEditorPanelProps {
@@ -26,10 +26,13 @@ interface DraftEditorPanelProps {
   isLoading: boolean;
   onSaveDraft: () => void;
   isSaving: boolean;
-  onQuickRefine: (action: 'shorten' | 'executive' | 'friendly' | 'add-cta') => void;
+  onQuickRefine: (action: RefinementAction, customInstruction?: string) => void;
   isRefining: boolean;
   latestUsageRecord: UsageRecord | null;
   errorMessage?: string | null;
+  canUndo?: boolean;
+  onUndo?: () => void;
+  lastActionApplied?: string | null;
 }
 
 export const DraftEditorPanel: React.FC<DraftEditorPanelProps> = ({
@@ -44,6 +47,9 @@ export const DraftEditorPanel: React.FC<DraftEditorPanelProps> = ({
   isRefining,
   latestUsageRecord,
   errorMessage,
+  canUndo,
+  onUndo,
+  lastActionApplied,
 }) => {
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
@@ -135,6 +141,9 @@ export const DraftEditorPanel: React.FC<DraftEditorPanelProps> = ({
         onQuickRefine={onQuickRefine}
         isRefining={isRefining}
         disabled={isLoading || isRefining || !content || !content.trim()}
+        canUndo={canUndo}
+        onUndo={onUndo}
+        lastActionApplied={lastActionApplied}
       />
 
       {/* Block 3: Dedicated High-Contrast Draft Canvas Component */}
