@@ -11,6 +11,7 @@ export interface AdjustToneResponse {
   content: string;
   subjectLine?: string;
   tokensUsed: number;
+  usageRecord?: UsageRecord;
 }
 
 export interface UsageAnalyticsResponse {
@@ -88,6 +89,7 @@ export const apiService = {
    */
   async adjustTone(params: {
     currentContent: string;
+    currentSubject?: string;
     targetPreset?: string;
     action: 'shorten' | 'executive' | 'friendly' | 'add-cta' | 're-tone';
     model?: string;

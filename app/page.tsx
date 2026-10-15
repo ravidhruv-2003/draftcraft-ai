@@ -116,23 +116,47 @@ export default function Home() {
 
   // Quick Refine Action Handler
   const handleQuickRefine = async (action: 'shorten' | 'executive' | 'friendly' | 'add-cta') => {
-    if (!generatedContent) return;
+    if (!generatedContent || !generatedContent.trim()) {
+      setErrorMessage('Please generate or enter a draft in the editor first before using Quick AI Refinement.');
+      return;
+    }
     setIsRefining(true);
+    setErrorMessage(null);
     try {
       const data = await apiService.adjustTone({
         currentContent: generatedContent,
+        currentSubject: subjectLine,
         targetPreset: toneSettings.preset,
         action,
-        model: 'claude-haiku-4-5-20251001',
+        model: selectedModel || 'claude-haiku-4-5-20251001',
       });
 
       if (data.content) {
-        setGeneratedContent(data.content);
+        let cleanContent = data.content;
+        let cleanSubject = data.subjectLine || subjectLine;
+
+        // Clean out any accidental leading Subject line in body
+        const match = data.content.match(/^(?:\*\*|#+\s*)?Subject(?:\s*Line)?:\s*\*{0,2}(.*?)\*{0,2}(?:\n+|$)/im);
+        if (match) {
+          if (!cleanSubject) {
+            cleanSubject = match[1].replace(/^\*+|\*+$/g, '').trim();
+          }
+          cleanContent = data.content.replace(/^(?:\*\*|#+\s*)?Subject(?:\s*Line)?:\s*.*(?:\n+|$)/im, '').trim();
+        }
+
+        setGeneratedContent(cleanContent);
+        if (cleanSubject) {
+          setSubjectLine(cleanSubject);
+        }
+        if (data.usageRecord) {
+          setLatestUsageRecord(data.usageRecord);
+        }
         loadData();
       }
     } catch (err: unknown) {
       console.error('Refine error:', err);
-      alert(err instanceof Error ? err.message : 'Error refining draft');
+      const msg = err instanceof Error ? err.message : 'Error refining draft with AI';
+      setErrorMessage(msg);
     } finally {
       setIsRefining(false);
     }

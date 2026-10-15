@@ -47,7 +47,8 @@ export const QuickPolishBar: React.FC<QuickPolishBarProps> = ({
             type="button"
             disabled={disabled || isRefining}
             onClick={() => onQuickRefine(act.id)}
-            className="flex items-center space-x-1.5 text-xs bg-slate-800/90 hover:bg-slate-750 disabled:opacity-40 border border-slate-700 text-slate-200 hover:text-white px-3 py-1.5 rounded-lg transition-all shadow-sm active:scale-95"
+            title={disabled ? 'Enter or generate a draft in the editor first to refine' : `Apply ${act.label}`}
+            className="flex items-center space-x-1.5 text-xs bg-slate-800/90 hover:bg-slate-750 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-700 text-slate-200 hover:text-white px-3 py-1.5 rounded-lg transition-all shadow-sm active:scale-95"
           >
             {act.icon}
             <span>{act.label}</span>

@@ -131,13 +131,11 @@ export const DraftEditorPanel: React.FC<DraftEditorPanelProps> = ({
       )}
 
       {/* Block 2: Quick Refine Toolbar Component */}
-      {content && (
-        <QuickPolishBar
-          onQuickRefine={onQuickRefine}
-          isRefining={isRefining}
-          disabled={isLoading || !content}
-        />
-      )}
+      <QuickPolishBar
+        onQuickRefine={onQuickRefine}
+        isRefining={isRefining}
+        disabled={isLoading || isRefining || !content || !content.trim()}
+      />
 
       {/* Block 3: Dedicated High-Contrast Draft Canvas Component */}
       <DraftCanvas
